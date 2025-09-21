@@ -28,5 +28,5 @@ GRANT CONNECT ON evaluations TO enseignant;
 
 
 
-CREATE PROFILE gestion LIMIT
+CREATE PROFILE profil1 LIMIT
 ;
