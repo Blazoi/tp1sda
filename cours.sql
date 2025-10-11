@@ -1,30 +1,32 @@
-ALTER SESSION SET CONTAINER = CDB$ROOT;
-CREATE USER C##sys1 IDENTIFIED BY oracle;
-CREATE USER C##sys2 IDENTIFIED BY oracle;
-GRANT SYSDBA TO C##sys1;
-GRANT SYSDBA TO C##sys2;
+-- ALTER SESSION SET CONTAINER = CDB$ROOT;
+-- CREATE USER C##sys1_JAD IDENTIFIED BY oracle;
+-- CREATE USER C##sys2_JAD IDENTIFIED BY oracle;
 
-CREATE PLUGGABLE DATABASE TP1PDB
-ADMIN USER JAD_gestionnaire IDENTIFIED BY oracle
-FILE_NAME_CONVERT = ('/opt/oracle/oradata/FREE/pdbseed/',
-'/opt/oracle/oradata/FREE/tp1pdb/');
+
+-- CREATE PLUGGABLE DATABASE TP1PDB
+-- ADMIN USER JAD_gestionnaire IDENTIFIED BY oracle
+-- FILE_NAME_CONVERT = ('/opt/oracle/oradata/FREE/pdbseed/',
+-- '/opt/oracle/oradata/FREE/tp1pdb/');     
 
 ALTER SESSION SET CONTAINER = TP1PDB;
+-- Ouvrir la PDB
+ALTER PLUGGABLE DATABASE OPEN;
 
 -- Utilisateurs
-CREATE USER JAD_registrariat IDENTIFIED BY oracle;
+CREATE USER JAD_registrariat1 IDENTIFIED BY oracle;
+CREATE USER JAD_registrariat2 IDENTIFIED BY oracle;
 CREATE USER JAD_api IDENTIFIED BY oracle;
 CREATE USER JAD_enseignant IDENTIFIED BY oracle;
 
 
 -- Tables
-CREATE TABLE JAD_registrariat.etudiants (
+CREATE TABLE JAD_registrariat1.etudiants (
     da_etudiant NUMBER PRIMARY KEY,
-    nom VARCHAR2(50),
-    prenom VARCHAR2(50)
+    nom_etudiant VARCHAR2(50),
+    prenom_etudiant VARCHAR2(50)
 );
 
-CREATE TABLE JAD_registrariat.cours (
+CREATE TABLE JAD_registrariat1.cours (
     id_cours NUMBER PRIMARY KEY,
     nom VARCHAR2(50),
     professeur VARCHAR2(50)
@@ -37,7 +39,7 @@ CREATE TABLE JAD_api.groupes (
 
 CREATE TABLE JAD_api.semestres (
     id_semestre NUMBER PRIMARY KEY,
-    nom VARCHAR2(50)
+    nom_semestre VARCHAR2(50)
 );
 
 CREATE TABLE JAD_enseignant.evaluations (
@@ -48,36 +50,31 @@ CREATE TABLE JAD_enseignant.evaluations (
 );
 
 
+
 -- Rôles
-CREATE role r_gestion;
-GRANT DBA TO r_gestion;
+CREATE ROLE r_registrariat_JAD;
+GRANT CREATE SESSION TO r_registrariat_JAD;
+GRANT ALL ON JAD_registrariat1.etudiants to r_registrariat_JAD;
+GRANT ALL ON JAD_registrariat1.cours to r_registrariat_JAD;
 
-CREATE ROLE r_registrariat;
-GRANT CREATE SESSION TO r_registrariat;
-GRANT RESOURCE TO r_registrariat;
-GRANT ALL ON JAD_registrariat.etudiants to r_registrariat;
-GRANT ALL ON JAD_registrariat.cours to r_registrariat;
+CREATE ROLE r_api_JAD;
+GRANT CREATE SESSION TO r_api_JAD;
+GRANT ALL ON JAD_api.groupes to r_api_JAD;
+GRANT ALL ON JAD_api.semestres to r_api_JAD;
 
-CREATE ROLE r_api;
-GRANT CREATE SESSION TO r_api;
-GRANT RESOURCE TO r_api;
-GRANT ALL ON JAD_api.groupes to r_api;
-GRANT ALL ON JAD_api.semestres to r_api;
-
-CREATE ROLE r_enseignant;
-GRANT CREATE SESSION TO r_enseignant;
-GRANT RESOURCE TO r_enseignant;
-GRANT ALL ON JAD_enseignant.evaluations TO r_enseignant;
+CREATE ROLE r_enseignant_JAD;
+GRANT CREATE SESSION TO r_enseignant_JAD;
+GRANT ALL ON JAD_enseignant.evaluations TO r_enseignant_JAD;
 
 -- Profils
-CREATE PROFILE p_gestion LIMIT
+CREATE PROFILE p_gestion_JAD LIMIT
 IDLE_TIME 30
 FAILED_LOGIN_ATTEMPTS 5
 PASSWORD_LOCK_TIME 5/1440
 PASSWORD_LIFE_TIME 90
 PASSWORD_GRACE_TIME 7;
 
-CREATE PROFILE p_usager LIMIT
+CREATE PROFILE p_usager_JAD LIMIT
 IDLE_TIME 10
 FAILED_LOGIN_ATTEMPTS 3
 PASSWORD_LOCK_TIME 20/1440
@@ -85,12 +82,14 @@ PASSWORD_LIFE_TIME 30
 PASSWORD_GRACE_TIME 3;
 
 -- Attribuer les rôles
-GRANT r_gestion TO JAD_gestionnaire;
-GRANT r_registrariat TO JAD_registrariat;
-GRANT r_api TO JAD_api;
-GRANT r_enseignant TO JAD_enseignant;
+-- GRANT r_gestion_JAD TO JAD_gestionnaire;
+GRANT r_registrariat_JAD TO JAD_registrariat1;
+GRANT r_registrariat_JAD TO JAD_registrariat2;
+GRANT r_api_JAD TO JAD_api;
+GRANT r_enseignant_JAD TO JAD_enseignant;
 
-ALTER USER JAD_gestionnaire PROFILE p_gestion;
-ALTER USER JAD_registrariat PROFILE p_usager;
-ALTER USER JAD_api PROFILE p_usager;
-ALTER USER JAD_enseignant PROFILE p_usager;
+ALTER USER JAD_gestionnaire PROFILE p_gestion_JAD;
+ALTER USER JAD_registrariat1 PROFILE p_usager_JAD;
+ALTER USER JAD_registrariat2 PROFILE p_usager_JAD;
+ALTER USER JAD_api PROFILE p_usager_JAD;
+ALTER USER JAD_enseignant PROFILE p_usager_JAD;
